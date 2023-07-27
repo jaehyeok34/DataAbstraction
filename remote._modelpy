@@ -1,14 +1,81 @@
+from pyevsim.definition import Infinite
 import zmq
 from codec import Codec
 from zmq_socket import ZmqSocket
+from pyevsim import BehaviorModelExecutor, SystemSimulator
+import threading
+from enum import Enum
+
+
+class RemoteModel(BehaviorModelExecutor):
+    class __State(Enum):
+        execute = 'execute'
+        terminate = 'terminate'
+    
+    # constructor
+    def __init__(
+            self, 
+            instanceTime    : float,   
+            destructTime    : float,   
+            modelName       : str, 
+            engineName      : str, 
+            inputPort       : str, 
+            socket          : zmq.Socket
+        ):
+        super().__init__(instanceTime, destructTime, modelName, engineName)
+        self.insert_state(RemoteModel.__State.execute, 1000)
+        self.init_state(RemoteModel.__State.terminate)
+
+        self.insert_input_port(inputPort)
+        self.init_state(RemoteModel.__State.terminate)
+
+        self.__socket = socket
+
+    # override method(BehaviorModelExecutor)
+    def ext_trans(self, port, msg):
+        print('model execute')
+        self.init_state(RemoteModel.__State.execute)
+
+    def int_trans(self):
+        self.init_state(RemoteModel.__State.execute)
+
+    def output(self):
+        while True:
+            reply = Codec.decode(self.__socket.recv_multipart())
+            command = reply[0]
+            datas = reply[1:]
+
+            print(f'command: {command}, datas: {datas}')
+
+            ## TODO: command 처리
+
 
 
 def main():
-    socketManager = ZmqSocket(zmq.DEALER, 'tcp://127.0.0.1:3400', 'kim')
+    ## zmq socket 생성 및 바인딩
+    socketManager = ZmqSocket(
+        socketType = zmq.DEALER,
+        addr = 'tcp://127.0.0.1:3400',
+        identity = input('input ID > ')
+    )
 
-    while True:
-        recv = socketManager.socket.recv_multipart()
-        print(recv)
+    ## simulation engine/model 생성
+    engineName = 'second engine'
+    engineInputPort = 'start'
+    engine = SystemSimulator.register_engine(engineName, "VIRTUAL_TIME", 1)
+    model = RemoteModel(0, Infinite, "remote", engineName, 'start', socketManager.socket)
+
+    ## engine 설정
+    engine.insert_input_port(engineInputPort)
+    engine.register_entity(model)
+    engine.coupling_relation(
+        None,   engineInputPort, 
+        model,  model.get_name()
+    )
+
+    ## engine 실행
+    engine.insert_external_event(engineInputPort, None)
+    engine.simulate()
         
         
 if __name__ == "__main__":

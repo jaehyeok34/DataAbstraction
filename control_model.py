@@ -80,7 +80,7 @@ class ControlModel(BehaviorModelExecutor):
         
 def main():
     ## zmq socket 생성 및 바인딩
-    socket = ZmqSocket(
+    socketManager = ZmqSocket(
         socketType = zmq.ROUTER,
         addr = 'tcp://127.0.0.1:3400'
     )
@@ -89,7 +89,7 @@ def main():
     engineName = 'first engine'
     engineInputPort = 'start'
     engine = SystemSimulator.register_engine(engineName, "VIRTUAL_TIME", 1)
-    model = ControlModel(0, Infinite, "control", engineName, 'start', socket.socket)
+    model = ControlModel(0, Infinite, "control", engineName, 'start', socketManager.socket)
 
     ## engine 설정
     engine.insert_input_port(engineInputPort)
