@@ -5,10 +5,11 @@ from enum import Enum
 from pyevsim import SystemSimulator, BehaviorModelExecutor
 from pyevsim.definition import *
 from zmq_socket import ZmqSocket
+import threading
 import time
 
 class ControlModel(BehaviorModelExecutor):
-    class State(Enum):
+    class __State(Enum):
         execute = 'execute'
         terminate = 'terminate'
 
@@ -24,40 +25,59 @@ class ControlModel(BehaviorModelExecutor):
         ):
         super().__init__(instanceTime, destructTime, modelName, engineName)
 
-        self.insert_state(ControlModel.State.execute, 1000)
-        self.init_state(ControlModel.State.terminate)
+        self.insert_state(ControlModel.__State.execute, 1000)
+        self.init_state(ControlModel.__State.terminate)
 
         self.insert_input_port(inputPort)
-        self.init_state(ControlModel.State.terminate)
+        self.init_state(ControlModel.__State.terminate)
 
         self.__socket = socket
-        self.__remoteList = []
+        self.__remoteList: dict[str] = {}
+        self._receiver = self.__generateRecieveThread()
 
     
     # method
+    def __generateRecieveThread(self) -> threading.Thread:
+        def recv():
+            while True:
+                reply = Codec.decode(self.__socket.recv_multipart())
+                dealerID = reply[0]
+                signal = reply[1]
+                datas = reply[2:]
+                self.__remoteList[dealerID] = signal
+
+        receiver = threading.Thread(target = recv)
+        receiver.start()
+        return receiver
+    
+    def __sendCommand(self, command: list[bytes]) -> None:
+        def isReadyAllRemote() -> bool:
+            for remote in self.__remoteList:
+                if self.__remoteList[remote] != ZmqSocket.Signal.readyToRecv.decode():
+                    return False
+            
+            return True
+        
+        if isReadyAllRemote():
+            for remote in self.__remoteList:
+                self.__socket.send_multipart([remote.encode()] + command)
+        else:
+            print('command failed: 아직 준비되지 않은 remote가 존재합니다.')
 
 
     # override method(BehaviorModelExecutor)
     def ext_trans(self, port, msg):
         print('model execute')
-        self.init_state(ControlModel.State.execute)
+        self.init_state(ControlModel.__State.execute)
 
     def int_trans(self):
-        self.init_state(ControlModel.State.execute)
+        self.init_state(ControlModel.__State.execute)
 
     def output(self):
-        reply = Codec.decode(self.__socket.recv_multipart())
-        dealerID = reply[0]
-        command = reply[1]
-        datas = reply[1:]
+        command = Codec.encode(input('명령 입력 > '))
+        self.__sendCommand(command)
 
-        if (dealerID not in self.__remoteList) and (command == ''):
-            self.__remoteList.append(dealerID)
-
-        pass
-    
-    
-
+        
 def main():
     ## zmq socket 생성 및 바인딩
     socket = ZmqSocket(

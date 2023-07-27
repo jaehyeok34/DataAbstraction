@@ -1,16 +1,18 @@
-class tmp:
-    def __init__(self, data) -> None:
-        self.__data = data
-
-    @property
-    def data(self):
-        return self.data
-    
-    @data.setter
-    def data(self, data):
-        if data > 10:
-            self.data = data
-            print('입력')
+import threading
+import time
 
 
-tmp(11)
+def generateRecieveThread():
+    def recv():
+        while True:
+            print('hello world')
+            time.sleep(3)
+            
+
+    receiver = threading.Thread(target = recv)
+    receiver.start()
+    print('end')
+    return receiver
+
+thread = generateRecieveThread()
+print(thread.is_alive())
