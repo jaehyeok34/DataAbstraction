@@ -1,33 +1,6 @@
 import zmq
 from codec import Codec
 from zmq_socket import ZmqSocket
-from pyevsim import BehaviorModelExecutor, SystemSimulator
-from enum import Enum
-
-class RemoteModel(BehaviorModelExecutor):
-    class __State(Enum):
-        execute = 'execute'
-        terminate = 'terminate'
-
-    def __init__(
-        self, 
-        instanceTime    : float,   
-        destructTime    : float,   
-        modelName       : str, 
-        engineName      : str, 
-        inputPort       : str, 
-        socket          : zmq.Socket
-    ):
-        super().__init__(instanceTime, destructTime, modelName, engineName)
-        self.insert_state(RemoteModel.__State.execute, 1000)
-        self.init_state(RemoteModel.__State.terminate)
-
-        self.insert_input_port(inputPort)
-        self.init_state(RemoteModel.__State.terminate)
-
-        self.__socket = socket
-        self.__remoteList: dict[str] = {}
-        self._receiver = self.__generateRecieveThread()
 
 
 def main():
