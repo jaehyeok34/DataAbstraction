@@ -1,4 +1,3 @@
-from pyevsim.definition import Infinite
 import zmq
 from codec import Codec
 from enum import Enum
@@ -32,7 +31,7 @@ class ControlModel(BehaviorModelExecutor):
         self.init_state(ControlModel.__State.terminate)
 
         self.__socket = socket
-        self.__remoteList: dict[str] = {}
+        self.__remoteList: dict[str, str] = {}
         self._receiver = self.__generateRecieveThread()
 
     
@@ -53,7 +52,7 @@ class ControlModel(BehaviorModelExecutor):
     def __sendCommand(self, command: list[bytes]) -> None:
         def isReadyAllRemote() -> bool:
             for remote in self.__remoteList:
-                if self.__remoteList[remote] != ZmqSocket.Signal.readyToRecv.decode():
+                if self.__remoteList[remote] != ZmqSocket.Signal.readyToRecv:
                     return False
             
             return True
@@ -74,7 +73,11 @@ class ControlModel(BehaviorModelExecutor):
         self.init_state(ControlModel.__State.execute)
 
     def output(self):
-        command = Codec.encode(input('명령 입력 > '))
+        while True:
+            command = Codec.encode(input('명령 입력 > '))
+            if command:
+                break
+
         self.__sendCommand(command)
 
         

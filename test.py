@@ -1,18 +1,8 @@
-import threading
-import time
+from enum import Enum
 
+class Commands(Enum):
+    run = b'run'
+    stop = b'stop'
 
-def generateRecieveThread():
-    def recv():
-        while True:
-            print('hello world')
-            time.sleep(3)
-            
-
-    receiver = threading.Thread(target = recv)
-    receiver.start()
-    print('end')
-    return receiver
-
-thread = generateRecieveThread()
-print(thread.is_alive())
+    def values() -> list[bytes]:
+        return [command.value for command in list(Commands)]

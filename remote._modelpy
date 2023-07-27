@@ -45,9 +45,14 @@ class RemoteModel(BehaviorModelExecutor):
             command = reply[0]
             datas = reply[1:]
 
-            print(f'command: {command}, datas: {datas}')
-
-            ## TODO: command 처리
+            if command == Codec.Commands.run.value:
+                ## TODO: 프로세스 실행 로직 구현
+                print(f'running... ({datas[0]})')
+            elif command == Codec.Commands.stop.value:
+                ## TODO: 프로세스 종료 로직 구현
+                print(f'stop... ({datas[0]})')
+            else:
+                pass
 
 
 

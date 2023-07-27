@@ -4,8 +4,8 @@ from enum import Enum
 
 class ZmqSocket:
     class Signal:
-        connected = b'connected'
-        readyToRecv = b'readyToReceive'
+        connected = 'connected'
+        readyToRecv = 'readyToReceive'
 
     # constructor
     def __init__(self, socketType: int, addr: str, identity:str = None) -> None:
@@ -21,8 +21,8 @@ class ZmqSocket:
             print('socket이 바인딩 되었습니다.')
         else:
             self.__socket.connect(addr)
-            self.__socket.send_multipart([ZmqSocket.Signal.connected])
-            self.__socket.send_multipart([ZmqSocket.Signal.readyToRecv])
+            self.__socket.send_multipart([ZmqSocket.Signal.connected.encode()])
+            self.__socket.send_multipart([ZmqSocket.Signal.readyToRecv.encode()])
 
     # property
     @property
