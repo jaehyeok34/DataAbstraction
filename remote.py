@@ -1,6 +1,7 @@
 import zmq
 from codec import Codec
 
+
 def remote():
     context = zmq.Context()
     router_socket = context.socket(zmq.ROUTER)
@@ -17,4 +18,5 @@ def remote():
         
 if __name__ == "__main__":
     remote()
+
 

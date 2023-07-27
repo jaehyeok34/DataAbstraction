@@ -1,4 +1,4 @@
-from pyevsim import SystemSimulator, BehaviorModelExecutor, SysMessage
+from pyevsim import SystemSimulator, BehaviorModelExecutor
 from pyevsim.definition import *
 import zmq
 import numpy as np

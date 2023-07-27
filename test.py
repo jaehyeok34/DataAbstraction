@@ -1,19 +1,16 @@
-from abc import ABC, abstractmethod
+class tmp:
+    def __init__(self, data) -> None:
+        self.__data = data
 
-class tmp(ABC):
-    @abstractmethod
-    def printf(self):
-        pass
-
-
-class rngus(tmp):
-    def printf(self, value):
-        print(value)
-
-    def printf(self):
-        print('b')
-
+    @property
+    def data(self):
+        return self.data
+    
+    @data.setter
+    def data(self, data):
+        if data > 10:
+            self.data = data
+            print('입력')
 
 
-rr = rngus()
-rr.printf('a')
+tmp(11)
