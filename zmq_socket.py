@@ -24,6 +24,7 @@ class ZmqSocket:
             self.__socket.send_multipart([ZmqSocket.Signal.connected.encode()])
             self.__socket.send_multipart([ZmqSocket.Signal.readyToRecv.encode()])
 
+
     # property
     @property
     def context(self) -> zmq.Context:
