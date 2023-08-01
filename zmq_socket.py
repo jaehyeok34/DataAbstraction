@@ -21,8 +21,10 @@ class ZmqSocket:
             print('socket이 바인딩 되었습니다.')
         else:
             self.__socket.connect(addr)
-            self.__socket.send_multipart([ZmqSocket.Signal.connected.encode()])
-            self.__socket.send_multipart([ZmqSocket.Signal.readyToRecv.encode()])
+            # self.__socket.send_multipart([ZmqSocket.Signal.connected.encode()])
+            # self.__socket.send_multipart([ZmqSocket.Signal.readyToRecv.encode()])
+            self.socket.send_multipart(Codec.encode(ZmqSocket.Signal.connected))
+            self.socket.send_multipart(Codec.encode(ZmqSocket.Signal.readyToRecv))
 
 
     # property

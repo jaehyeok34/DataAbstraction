@@ -74,10 +74,10 @@ def dealer():
 #     print(table[encodingDatas[i].decode()](encodingDatas[i + 1]))
 
 
-# temp = [1, 2, 3, 4, 5, 6]
+temp = [1, 2, 3, 4, 5, 6]
 
-# for i in range(0, len(temp) - 1, 2):
-#     print(temp[i + 1])
+for i in range(0, len(temp) - 1, 2):
+    print(temp[i + 1])
 
 data = [10, 20, 'hello World', False]
 

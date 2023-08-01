@@ -3,7 +3,6 @@ import zmq
 from codec import Codec
 from zmq_socket import ZmqSocket
 from pyevsim import BehaviorModelExecutor, SystemSimulator
-import threading
 from enum import Enum
 
 
@@ -42,17 +41,17 @@ class RemoteModel(BehaviorModelExecutor):
     def output(self):
         while True:
             reply = Codec.decode(self.__socket.recv_multipart())
-            command = reply[0]
-            datas = reply[1:]
+            print(reply)
+            
 
-            if command == Codec.Commands.run.value:
-                ## TODO: 프로세스 실행 로직 구현
-                print(f'running... ({datas[0]})')
-            elif command == Codec.Commands.stop.value:
-                ## TODO: 프로세스 종료 로직 구현
-                print(f'stop... ({datas[0]})')
-            else:
-                pass
+            # if command == Codec.Commands.run.value:
+            #     ## TODO: 프로세스 실행 로직 구현
+            #     print(f'running... ({datas[0]})')
+            # elif command == Codec.Commands.stop.value:
+            #     ## TODO: 프로세스 종료 로직 구현
+            #     print(f'stop... ({datas[0]})')
+            # else:
+            #     pass
 
 
 

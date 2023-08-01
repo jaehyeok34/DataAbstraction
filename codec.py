@@ -11,10 +11,11 @@ class Codec:
 
     # public static method -----
     @staticmethod
-    def encode(param) -> list[bytes] | None:
+    def encode(param, splitSep: str = None) -> list[bytes] | None:
         try:
             # [b'EDP', b'{type}', b'{data}']의 형태로 반환
-            return [Codec.__EDP] + Codec.__getFunctionTable(Codec.__ENCODE)[type(param).__name__](param)
+            table = Codec.__getFunctionTable(Codec.__ENCODE)
+            return [Codec.__EDP] + table[type(param).__name__](param, splitSep)
         except KeyError:
             # int, bool, string, list외에 type이 들어왔을 경우
             traceback.print_exc()
@@ -50,7 +51,7 @@ class Codec:
     # type에 따른 인/디코딩 방식을 다르게 적용하기 위해, 각 기능을 제공하는 함수 테이블 반환(lookup table)
     @staticmethod
     def __getFunctionTable(mode: int) -> (
-        Callable[[int], list[bytes]] | Callable[[list[bytes]], Any]
+        Callable[[int, Any], list[bytes]] | Callable[[list[bytes]], Any]
     ):
         table = [
             # index = 0: Encode Function table
@@ -72,22 +73,26 @@ class Codec:
 
     # 인코딩 함수: [b'{name of type}, b'{encoded data}'] 형태로 반환
     @staticmethod
-    def __encodeInt(param: int) -> list[bytes]:
+    def __encodeInt(param: int, _) -> list[bytes]:
         return [type(param).__name__.encode(), param.to_bytes()]
     
     @staticmethod
-    def __encodeBool(param: bool) -> list[bytes]:
+    def __encodeBool(param: bool, _) -> list[bytes]:
         return [type(param).__name__.encode(), str(param).encode()]
     
     @staticmethod
-    def __encodeString(param: str) -> list[bytes]:
-        return [type(param).__name__.encode(), param.encode()]
+    def __encodeString(param: str, sep: str = None) -> list[bytes]:
+        if sep is not None:
+            return Codec.__encodeList(param.split(sep))
+        else:
+            return [type(param).__name__.encode(), param.encode()]
     
     @staticmethod
-    def __encodeList(param: list) -> list[bytes]:
+    def __encodeList(param: list, _) -> list[bytes]:
         retValue = []
+        table = Codec.__getFunctionTable(Codec.__ENCODE)
         for item in param:
-            retValue.extend(Codec.__getFunctionTable(Codec.__ENCODE)[type(item).__name__](item))
+            retValue.extend(table[type(item).__name__](item, None))
         
         return retValue
     
@@ -113,3 +118,7 @@ class Codec:
     @staticmethod
     def __decodeString(param: bytes) -> str:
         return param.decode()
+    
+    @staticmethod
+    def test():
+        print(Codec.encode('hello World', ' '))

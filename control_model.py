@@ -39,11 +39,11 @@ class ControlModel(BehaviorModelExecutor):
     def __generateRecieveThread(self) -> threading.Thread:
         def recv():
             while True:
-                reply = Codec.decode(self.__socket.recv_multipart())
+                reply = self.__socket.recv_multipart()
                 dealerID = reply[0]
-                signal = reply[1]
-                datas = reply[2:]
-                self.__remoteList[dealerID] = signal
+                datas = Codec.decode(reply[1:])
+                print(f'reply: {datas[0]}')
+                self.__remoteList[dealerID] = datas[0]
 
         receiver = threading.Thread(target = recv)
         receiver.start()
@@ -59,7 +59,7 @@ class ControlModel(BehaviorModelExecutor):
         
         if isReadyAllRemote():
             for remote in self.__remoteList:
-                self.__socket.send_multipart([remote.encode()] + command)
+                self.__socket.send_multipart([remote] + command)
         else:
             print('command failed: 아직 준비되지 않은 remote가 존재합니다.')
 
