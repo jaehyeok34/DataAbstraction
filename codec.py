@@ -35,6 +35,10 @@ class Codec:
                 param = param[:i]
                 break
         
+        if not encoded:
+            print('EDPNotFoundError: 변환 시작점이 존재하지 않거나, 찾을 수 없습니다.')
+            return None
+
         # 디코딩 진행
         for i in range(0, len(encoded) - 1, 2):
             try:
