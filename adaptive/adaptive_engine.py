@@ -5,36 +5,51 @@ from pyevsim.system_executor import SysExecutor, BehaviorModelExecutor
 import threading
 from bootstreap import Bootstrap
 from queue import Queue
+from typing import Callable, Tuple
 
 class AdaptiveEngine:
-    # 외부 패킷 수신 객체(multi-thread)
-    class __Receiver:
-        __SOCK_CONNECTED    =   'connected'
-        __SOCK_DISCONNECTED =   'disconnected'
+    SOCK_CONNECTED      =   b'connected'
+    SOCK_DISCONNECTED   =   b'disconnected'
+    NET_INFO            =   'tcp://127.0.0.1:3401'
 
-        def __init__(self, queue: Queue) -> None:
+    # 외부 패킷 수신 클래스(multi-thread)
+    class __Receiver:
+        def __init__(
+            self, 
+            enqueue: Callable[
+                [zmq.Socket, str, str, Tuple[int, int]],
+                None
+            ]
+        ) -> None:
             self.__context  =   zmq.Context()
             self.__socket   =   self.__context.socket(zmq.ROUTER)
             self.__users    =   set()
-            self.__queue    =   queue
-
+            self.__enqueue  =   enqueue
             self.__socket.bind('tcp://127.0.0.1:3401')
-            print('소켓 준비완료')
+            print('소켓 바인딩 완료')
 
+        # property
         @property
         def users(self) -> list:
             return self.__users
         
+        # method
         def recv(self):
               while True:
                 receive = self.__socket.recv_multipart()
-                if AdaptiveEngine.__Receiver.__SOCK_CONNECTED in receive:
+                # 외부에서 연결 요청
+                if AdaptiveEngine.SOCK_CONNECTED in receive:
                     self.__users.add(receive[0])
-                    pass
-                elif AdaptiveEngine.__Receiver.__SOCK_DISCONNECTED in receive:
+                    print(f'유저 추가: {self.__users}')
+                # 외부에서 종료 요청
+                elif AdaptiveEngine.SOCK_DISCONNECTED in receive:
                     self.__users.remove(receive[0])
+                # 외부에서 처리 요청
                 else:
-                    self.__queue.put(receive)
+                    userID = receive[0]
+                    partsName = receive[1].decode()
+                    msg = [int(x.decode()) for x in receive[2:]]
+                    self.__enqueue(self.__socket, userID, partsName, msg)
     
     # constructor
     def __init__(
@@ -50,7 +65,7 @@ class AdaptiveEngine:
             destruct_time   =   Infinite,
             engine_name     =   self.__engine.get_name()
         )
-        self.__receiver     =   AdaptiveEngine.__Receiver(self.__bootstrap.queue)
+        self.__receiver     =   AdaptiveEngine.__Receiver(self.__bootstrap.enqueue)
 
     
     # property
@@ -62,6 +77,7 @@ class AdaptiveEngine:
     def engine(self) -> SysExecutor:
         return self.__engine
     
+    # for test
     @property
     def bootstrap(self) -> Bootstrap:
         return self.__bootstrap
@@ -91,21 +107,27 @@ class AdaptiveEngine:
         self.__recv()
         self.__engine.simulate()
 
-        
-def addParts():
-    while True:
-        parts = input('> ')
-        if parts in adaptiveEngine.bootstrap.parts:
-            print(f'{parts}에 데이터 전송됨')
-            adaptiveEngine.engine.insert_external_event(parts, None)
-        else:
-            print('존재하지 않은 parts임.')
+# # for test
+# def addParts():
+#     while True:
+#         parts = input('> ')
+#         if parts in adaptiveEngine.bootstrap.parts:
+#             print(f'{parts}에 데이터 전송됨')
+#             adaptiveEngine.engine.insert_external_event(parts, [10, 20])
+#         else:
+#             adaptiveEngine.bootstrap.enqueue(
+#                 None,
+#                 None,
+#                 parts,
+#                 [10, 20],
+#                 )
 
 if __name__ == "__main__":
     adaptiveEngine = AdaptiveEngine()
-    # adaptiveEngine.engine.insert_external_event(adaptiveEngine.partsPorts[0], None)
-    t = threading.Thread(target=addParts)
-    t.start()
+    # # for test
+    # t = threading.Thread(target=addParts)
+    # t.start()
+    # ##########
     adaptiveEngine.run()
 
 
