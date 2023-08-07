@@ -2,10 +2,8 @@ import zmq
 
 class PartsDB:
     names = [
-        'parts1',
-        'parts2',
-        'parts3',
-        'parts4',
+        'partsD',
+        'partsE',
     ]
     @staticmethod
     def main():
@@ -27,12 +25,13 @@ class PartsDB:
             reply = socket.recv_multipart()
 
             for item in reply:
+                msg = 'NotFoundError'
                 if item.decode() in PartsDB.names:
-                    print('send')
-                    socket.send_multipart([reply[0], item])
-                else:
-                    print('fail')
+                    msg = item
 
+                print('db send!')
+                socket.send_multipart([reply[0], item])
+                
 
 if __name__ == '__main__':
     PartsDB.main()
