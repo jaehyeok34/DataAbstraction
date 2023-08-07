@@ -15,7 +15,7 @@ class Parts(BehaviorModelExecutor):
         destruct_time           =   ...,
         name                    =   ".",
         engine_name             =   "default",
-    ):
+    ) -> None:
         super().__init__(
             instantiate_time, 
             destruct_time, 
@@ -30,13 +30,13 @@ class Parts(BehaviorModelExecutor):
 
         self.init_state(Parts.__terminated)
 
-    def int_trans(self):
+    def int_trans(self) -> None:
         self.init_state(Parts.__terminated)
 
-    def ext_trans(self, port, msg: SysMessage):
+    def ext_trans(self, port, msg: SysMessage) -> None:
         msg = msg.retrieve()[0]
         print(f'{msg} 처리 결과: {self.__callback(msg)}')
         self.init_state(Parts.__executed)
 
-    def output(self):
+    def output(self) -> None:
         print(f'{self.get_name()} parts 종료')

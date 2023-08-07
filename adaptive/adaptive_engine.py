@@ -4,7 +4,6 @@ from pyevsim import SystemSimulator
 from pyevsim.system_executor import SysExecutor, BehaviorModelExecutor
 import threading
 from bootstreap import Bootstrap
-from queue import Queue
 from typing import Callable, Tuple
 
 class AdaptiveEngine:
@@ -34,7 +33,7 @@ class AdaptiveEngine:
             return self.__users
         
         # method
-        def recv(self):
+        def recv(self) -> None:
               while True:
                 receive = self.__socket.recv_multipart()
                 # 외부에서 연결 요청
@@ -77,27 +76,22 @@ class AdaptiveEngine:
     def engine(self) -> SysExecutor:
         return self.__engine
     
-    # for test
-    @property
-    def bootstrap(self) -> Bootstrap:
-        return self.__bootstrap
-    
     # private method
     def __initEngine(self, name, port) -> SysExecutor:
         engine = SystemSimulator.register_engine(
-                    name, 
-                    'VIRTUAL_TIME', 
-                    1
+            name, 
+            'VIRTUAL_TIME', 
+            1
         )
         engine.insert_input_port(port)
         return engine
     
-    def __recv(self):
+    def __recv(self) -> None:
         receiver = threading.Thread(target=self.__receiver.recv)
         receiver.start()
     
     # method
-    def run(self):
+    def run(self) -> None:
         self.__engine.register_entity(self.__bootstrap)
         self.__engine.coupling_relation(
             None,               self.__receivePort,
@@ -107,27 +101,8 @@ class AdaptiveEngine:
         self.__recv()
         self.__engine.simulate()
 
-# # for test
-# def addParts():
-#     while True:
-#         parts = input('> ')
-#         if parts in adaptiveEngine.bootstrap.parts:
-#             print(f'{parts}에 데이터 전송됨')
-#             adaptiveEngine.engine.insert_external_event(parts, [10, 20])
-#         else:
-#             adaptiveEngine.bootstrap.enqueue(
-#                 None,
-#                 None,
-#                 parts,
-#                 [10, 20],
-#                 )
-
 if __name__ == "__main__":
     adaptiveEngine = AdaptiveEngine()
-    # # for test
-    # t = threading.Thread(target=addParts)
-    # t.start()
-    # ##########
     adaptiveEngine.run()
 
 

@@ -13,7 +13,7 @@ class PartsDB:
     }
 
     @staticmethod
-    def main():
+    def main() -> None:
         socket = PartsDB.__initSocet()
         PartsDB.__recv(socket)
 
@@ -37,7 +37,7 @@ class PartsDB:
         return socket
 
     @staticmethod
-    def __recv(socket: zmq.Socket):
+    def __recv(socket: zmq.Socket) -> None:
         while True:
             userID, parts = socket.recv_multipart()[:2]
             print(parts)

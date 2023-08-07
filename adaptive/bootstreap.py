@@ -5,9 +5,7 @@ from pyevsim.definition import Infinite
 from queue import Queue, Empty
 from parts_function import PartsFunction
 from parts_db import PartsDB
-import time
 import zmq
-import pickle
 from typing import Tuple
 
 
@@ -29,7 +27,7 @@ class Bootstrap(BehaviorModelExecutor):
             destruct_time           =   ..., 
             name                    =   "bootstrap", 
             engine_name             =   "default"
-    ):
+    ) -> None:
         super().__init__(
             instantiate_time, 
             destruct_time, 
@@ -58,13 +56,13 @@ class Bootstrap(BehaviorModelExecutor):
         return self.__inputPort
     
     # override method
-    def int_trans(self):
+    def int_trans(self) -> None:
         pass
 
-    def ext_trans(self, port, msg):
+    def ext_trans(self, port, msg) -> None:
         pass
 
-    def output(self):
+    def output(self) -> None:
         try:
             socket, userID, partsName, msg = self.__dequeue()
 
@@ -101,7 +99,7 @@ class Bootstrap(BehaviorModelExecutor):
 
         return socket
     
-    def __addParts(self, key: str, info: list):
+    def __addParts(self, key: str, info: list) -> None:
         INPUT_PORT  =   0
         CALLBACK    =   1
         parts = Parts(
@@ -125,7 +123,7 @@ class Bootstrap(BehaviorModelExecutor):
         return tuple(result)
 
     # method
-    def initBaseParts(self):
+    def initBaseParts(self) -> None:
         for key in Bootstrap.__baseParts:
             self.__addParts(
                 key, 
@@ -141,5 +139,5 @@ class Bootstrap(BehaviorModelExecutor):
             userID      :   bytes,
             partsName   :   str,
             msg         :   Tuple[int, int]
-    ):
+    ) -> None:
         self.__queue.put([socket, userID, partsName, msg])
