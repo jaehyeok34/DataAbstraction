@@ -95,7 +95,4 @@ def dealer():
 # print(e)
 # print(d)
 
-l = []
-print(len(l))
-if l.count() == 0:
-    print('None')
+
