@@ -250,8 +250,10 @@
 # print(f)
 # print(n)
 
-def t():
-    return None
+# def t():
+#     return None
 
-s, d = t()
-print(s)
+# s, d = t()
+# print(s)
+
+print(str(10))

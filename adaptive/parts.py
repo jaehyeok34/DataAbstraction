@@ -1,5 +1,6 @@
 from pyevsim import BehaviorModelExecutor, SysMessage
 from pyevsim.definition import Infinite
+import zmq
 import time
 
 class Parts(BehaviorModelExecutor):
@@ -34,9 +35,13 @@ class Parts(BehaviorModelExecutor):
         self.init_state(Parts.__terminated)
 
     def ext_trans(self, port, msg: SysMessage) -> None:
-        msg = msg.retrieve()[0]
-        print(f'{msg} 처리 결과: {self.__callback(msg)}')
+        msg: tuple[zmq.Socket, bytes, str, list] = msg.retrieve()[0]
+        socket, userID, partsName, msg = msg
+        result: int = self.__callback(msg)
+        print(f'"{partsName}" processing complete: {result}')
+        socket.send_multipart([userID, str(result).encode()])
         self.init_state(Parts.__executed)
 
     def output(self) -> None:
-        print(f'{self.get_name()} parts 종료')
+        print(f'end "{self.get_name()}" parts')
+        print()

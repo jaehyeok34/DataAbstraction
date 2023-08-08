@@ -3,7 +3,7 @@ import zmq
 from pyevsim import SystemSimulator
 from pyevsim.system_executor import SysExecutor, BehaviorModelExecutor
 import threading
-from bootstreap import Bootstrap
+from parts_management import PartsManagement
 from typing import Callable, Tuple
 
 class AdaptiveEngine:
@@ -39,16 +39,18 @@ class AdaptiveEngine:
                 # 외부에서 연결 요청
                 if AdaptiveEngine.SOCK_CONNECTED in receive:
                     self.__users.add(receive[0])
-                    print(f'유저 추가: {self.__users}')
+                    # print(f'유저 추가: {self.__users}')
                 # 외부에서 종료 요청
                 elif AdaptiveEngine.SOCK_DISCONNECTED in receive:
                     self.__users.remove(receive[0])
                 # 외부에서 처리 요청
                 else:
+                    print(f'requests received: {[item.decode() for item in receive[1:]]}')
                     userID = receive[0]
                     partsName = receive[1].decode()
                     msg = [int(x.decode()) for x in receive[2:]]
                     self.__enqueue(self.__socket, userID, partsName, msg)
+
     
     # constructor
     def __init__(
@@ -59,12 +61,12 @@ class AdaptiveEngine:
         self.__name         =   name
         self.__receivePort  =   receivePort
         self.__engine       =   self.__initEngine(self.__name, self.__receivePort)
-        self.__bootstrap    =   Bootstrap(
+        self.__partsManager =   PartsManagement(
             instantiate_time=   0,
             destruct_time   =   Infinite,
             engine_name     =   self.__engine.get_name()
         )
-        self.__receiver     =   AdaptiveEngine.__Receiver(self.__bootstrap.enqueue)
+        self.__receiver     =   AdaptiveEngine.__Receiver(self.__partsManager.enqueue)
 
     
     # property
@@ -92,10 +94,10 @@ class AdaptiveEngine:
     
     # method
     def run(self) -> None:
-        self.__engine.register_entity(self.__bootstrap)
+        self.__engine.register_entity(self.__partsManager)
         self.__engine.coupling_relation(
-            None,               self.__receivePort,
-            self.__bootstrap,   self.__bootstrap.inputPort  
+            None,                   self.__receivePort,
+            self.__partsManager,    self.__partsManager.inputPort  
         )
         self.__engine.insert_external_event(self.__receivePort, None)
         self.__recv()

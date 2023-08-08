@@ -9,13 +9,12 @@ import zmq
 from typing import Tuple
 
 
-class Bootstrap(BehaviorModelExecutor):
+class PartsManagement(BehaviorModelExecutor):
     UNPROCESSABLE   =   b'unprocessable'
     __baseParts     =   {
         # model name & engine input port    :   [input port,    function]
-        'partsA'                            :   ['A',           PartsFunction.funcA],
-        'partsB'                            :   ['B',           PartsFunction.funcB],
-        'partsC'                            :   ['C',           PartsFunction.funcC],
+        '+'                            :   ['ADD',           PartsFunction.add],
+        '-'                            :   ['SUB',           PartsFunction.sub],
     }
     __executed      =   'executed'
     
@@ -41,10 +40,10 @@ class Bootstrap(BehaviorModelExecutor):
         self.__dbSocket             =   self.__initSocket()
 
         self.initBaseParts()
-        self.insert_state(Bootstrap.__executed, 1000)
+        self.insert_state(PartsManagement.__executed, 1000)
         self.insert_input_port(inputPort)
 
-        self.init_state(Bootstrap.__executed)
+        self.init_state(PartsManagement.__executed)
 
     # property
     @property
@@ -64,27 +63,30 @@ class Bootstrap(BehaviorModelExecutor):
 
     def output(self) -> None:
         try:
-            socket, userID, partsName, msg = self.__dequeue()
+            datas = self.__dequeue()
+            socket, userID, partsName, msg = datas
 
             if partsName in self.__parts:       # base parts에 있을 경우
-                self.__engine.insert_external_event(partsName, msg)
+                self.__engine.insert_external_event(partsName, datas)
             else:                               # base parts에 없을 경우(DB에 요청)
                 # DB에 있을 경우
                 try:
                     key, info = PartsDB.getParts(self.__dbSocket, partsName)
 
-                    print('DB에서 추가함')
+                    print(f'system: no "{partsName}" in current engine')
+                    print(f'system: added "{partsName}" parts from parts DB')
                     self.__addParts(
                         key = key, 
                         info = info
                     )
-                    self.__engine.insert_external_event(partsName, msg)
+                    self.__engine.insert_external_event(partsName, datas)
 
                 # DB에 없을 경우(None이 반환된 경우, TypeError)
                 except:
                     # TODO: DB에 조차 없음, 유저에게 처리 불가능 전달
-                    print('db에도 없네유~')
-                    socket.send_multipart([userID, Bootstrap.UNPROCESSABLE])
+                    print(f'system: "{partsName}" parts not even in the parts DB')
+                    print()
+                    socket.send_multipart([userID, PartsManagement.UNPROCESSABLE])
                     pass
         # queue에 요청 사항이 없는 경우
         except Empty:
@@ -124,12 +126,12 @@ class Bootstrap(BehaviorModelExecutor):
 
     # method
     def initBaseParts(self) -> None:
-        for key in Bootstrap.__baseParts:
+        for key in PartsManagement.__baseParts:
             self.__addParts(
                 key, 
                 [
-                    Bootstrap.__baseParts[key][0],
-                    Bootstrap.__baseParts[key][1]
+                    PartsManagement.__baseParts[key][0],
+                    PartsManagement.__baseParts[key][1]
                 ]
             )
     

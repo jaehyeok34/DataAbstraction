@@ -1,22 +1,22 @@
 class PartsFunction:
-    def funcA(values: list) -> int:
+    def add(values: list) -> int:
         return sum(values)
     
-    def funcB(values: list) -> int:
+    def sub(values: list) -> int:
         result = values[0]
         for i in range(1, len(values)):
             result -= values[i]
         
         return result
     
-    def funcC(values: list) -> int:
+    def mul(values: list) -> int:
         result = values[0]
         for i in range(1, len(values)):
             result *= values[i]
 
         return result
     
-    def funcD(values: list) -> int | float:
+    def div(values: list) -> int | float:
         result = values[0]
         for i in range(1, len(values)):
             result /= values[i]

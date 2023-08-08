@@ -1,6 +1,8 @@
 from parts_function import PartsFunction
 import zmq
 import pickle
+import threading
+import time
 
 class PartsDB:
     NET_INFO = 'tcp://127.0.0.1:3400'
@@ -9,12 +11,13 @@ class PartsDB:
 
     __partsInfo = {
         # parts name & engine input port    :   [input port,    function]
-        'partsD'                            :   ['D', PartsFunction.funcD],
+        '*'                            :   ['MUL', PartsFunction.mul],
     }
 
     @staticmethod
     def main() -> None:
         socket = PartsDB.__initSocet()
+        PartsDB.__printCurrentDB()
         PartsDB.__recv(socket)
 
     @staticmethod
@@ -40,7 +43,8 @@ class PartsDB:
     def __recv(socket: zmq.Socket) -> None:
         while True:
             userID, parts = socket.recv_multipart()[:2]
-            print(parts)
+            print()
+            print(f'request: get "{parts.decode()}" parts')
 
             foundParts = [PartsDB.NOT_FOUND_ERROR]
             try:
@@ -48,9 +52,21 @@ class PartsDB:
             except KeyError:
                 pass
             finally:
-                print(f'db send! {foundParts}')
+                print(f'response: {foundParts[0].decode()}')
                 socket.send_multipart([userID, *foundParts])
+
+    @staticmethod
+    def __printCurrentDB() -> None:
+        print(f'current DB instance: {list(PartsDB.__partsInfo.keys())}')
                 
+    def addInstance() -> None:
+        time.sleep(10)
+        print()
+        print('Add "/" parts to DB')
+        PartsDB.__partsInfo['/'] = ['DIV', PartsFunction.div]
+        PartsDB.__printCurrentDB()
 
 if __name__ == '__main__':
+    t = threading.Thread(target=PartsDB.addInstance)
+    t.start()
     PartsDB.main()
