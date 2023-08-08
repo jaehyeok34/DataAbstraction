@@ -25,7 +25,7 @@ class AdaptiveEngine:
             self.__users    =   set()
             self.__enqueue  =   enqueue
             self.__socket.bind('tcp://127.0.0.1:3401')
-            print('소켓 바인딩 완료')
+            # print('소켓 바인딩 완료')
 
         # property
         @property

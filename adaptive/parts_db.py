@@ -35,7 +35,7 @@ class PartsDB:
         context = zmq.Context()
         socket = context.socket(zmq.ROUTER)
         socket.bind(PartsDB.NET_INFO)
-        print('소켓이 바인드 됐습니다.')
+        # print('소켓이 바인드 됐습니다.')
 
         return socket
 
